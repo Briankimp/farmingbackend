@@ -10,6 +10,9 @@ connectDB();
 // Authentication Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 
+// Product Routes
+app.use("/api/products", require("./routes/productRoutes"));
+
 app.get("/", (req, res) => {
     res.send("Welcome to the Fruit Market API!");
 });
