@@ -56,3 +56,27 @@ exports.getFarmerOrders = async (req, res) => {
         res.status(500).json({ error: "Error fetching farmer orders." });
     }
 };
+
+// Update Order Status (Farmer Only)
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+
+        // Verify the order belongs to this farmer
+        if (order.farmer.toString() !== req.user.id) {
+            return res.status(403).json({ error: "Unauthorized to update this order" });
+        }
+
+        order.status = status;
+        await order.save();
+
+        res.json({ message: "Order status updated successfully!", order });
+    } catch (error) {
+        res.status(500).json({ error: "Error updating order status." });
+    }
+};
