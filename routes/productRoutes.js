@@ -8,7 +8,7 @@ const router = express.Router();
 // Set up storage for image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/"); // Save images to "uploads/" folder
+        cb(null, "uploads/"); // Save images in "uploads/" folder
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + "-" + file.originalname); // Unique filename
