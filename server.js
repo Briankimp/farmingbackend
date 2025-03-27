@@ -7,7 +7,10 @@ const http = require("http");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['https://farming-platform-v5.vercel.app', 'http://localhost:3000'],
+  credentials: true
+}));
 
 // Serve static files (images)
 app.use("/uploads", express.static("uploads"));
