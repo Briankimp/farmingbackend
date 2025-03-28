@@ -3,6 +3,12 @@ const router = express.Router();
 const { uploadProduct, getProducts, getProductById, updateProduct, deleteProduct } = require("../controllers/productController");
 const { protect, farmerOnly } = require("../middleware/authMiddleware");
 
+const { createProduct } = require("../controllers/productController");
+
+// Ensure this route follows RESTful API best practices
+router.post("/", createProduct); // POST /api/products  
+
+
 // Upload product (Farmer only)
 router.post("/upload", protect, farmerOnly, uploadProduct);
 
