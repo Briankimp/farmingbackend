@@ -1,15 +1,21 @@
 const express = require("express");
-const { placeOrder, getVendorOrders, getFarmerOrders, updateOrderStatus } = require("../controllers/orderController");
-const authMiddleware = require("../middleware/authMiddleware");
-
 const router = express.Router();
+const { createOrder, getOrders, getOrderById, updateOrderStatus, cancelOrder } = require("../controllers/orderController");
+const { protect, vendorOnly } = require("../middleware/authMiddleware");
 
-// Routes
-router.post("/place", authMiddleware, placeOrder);  // Vendor places an order
-router.get("/vendor", authMiddleware, getVendorOrders);  // Vendor views their orders
-router.get("/farmer", authMiddleware, getFarmerOrders);  // Farmer views orders for their products
-router.put("/update", authMiddleware, updateOrderStatus);  // Farmer updates order status
-router.put('/update/:orderId', authMiddleware, updateOrderStatus); // Farmer updates order status
+// Create order (Vendor only)
+router.post("/create", protect, vendorOnly, createOrder);
 
+// Get all orders for logged-in user
+router.get("/", protect, getOrders);
+
+// Get order by ID
+router.get("/:orderId", protect, getOrderById);
+
+// Update order status (Farmer only)
+router.put("/update/:orderId", protect, updateOrderStatus);
+
+// Cancel order (Vendor only)
+router.delete("/cancel/:orderId", protect, vendorOnly, cancelOrder);
 
 module.exports = router;
