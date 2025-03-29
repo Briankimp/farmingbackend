@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const { uploadProduct, getProducts, getProductById, updateProduct, deleteProduct } = require("../controllers/productController");
 const { protect, farmerOnly } = require("../middleware/authMiddleware");
-const { uploadProduct } = require("../controllers/productController");
 const multer = require("multer");
 
 //configure multer for file uploads
@@ -17,7 +16,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Ensure this route follows RESTful API best practices
-router.post("/", createProduct); // POST /api/products  
+ 
 
 
 // Upload product (Farmer only)
