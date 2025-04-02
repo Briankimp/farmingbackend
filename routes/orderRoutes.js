@@ -1,21 +1,37 @@
 const express = require("express");
 const router = express.Router();
-const { createOrder, getOrders, getOrderById, updateOrderStatus, cancelOrder } = require("../controllers/orderController");
-const { protect, vendorOnly } = require("../middleware/authMiddleware");
+const { protect, vendorOnly, farmerOnly } = require("../middleware/authMiddleware");
+const orderController = require("../controllers/orderController");
 
-// Create order (Vendor only)
-router.post("/create", protect, vendorOnly, createOrder);
+// Debugging to check if the functions are properly imported
+console.log("Order Controller:", orderController);
+Object.keys(orderController).forEach(key => {
+    console.log(`${key}: ${typeof orderController[key]}`);
+});
 
-// Get all orders for logged-in user
-router.get("/", protect, getOrders);
+// Validate that all required functions exist
+const requiredFunctions = [
+    'createOrder', 
+    'getOrders', 
+    'getOrderById', 
+    'updateOrderStatus', 
+    'cancelOrder'
+];
 
-// Get order by ID
-router.get("/:orderId", protect, getOrderById);
+const missingFunctions = requiredFunctions.filter(func => 
+    typeof orderController[func] !== 'function'
+);
 
-// Update order status (Farmer only)
-router.put("/update/:orderId", protect, updateOrderStatus);
+if (missingFunctions.length > 0) {
+    console.error(`❌ Missing order controller functions: ${missingFunctions.join(', ')}`);
+    throw new Error(`Missing order controller functions: ${missingFunctions.join(', ')}`);
+}
 
-// Cancel order (Vendor only)
-router.delete("/cancel/:orderId", protect, vendorOnly, cancelOrder);
+// Define routes using the validated controller functions
+router.post("/create", protect, vendorOnly, orderController.createOrder);  
+router.get("/", protect, orderController.getOrders);
+router.get("/:orderId", protect, orderController.getOrderById);
+router.put("/update", protect, farmerOnly, orderController.updateOrderStatus);
+router.delete("/cancel/:orderId", protect, vendorOnly, orderController.cancelOrder);
 
 module.exports = router;

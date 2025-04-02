@@ -1,113 +1,119 @@
 const Product = require("../models/Product");
 
+// Upload a new product
 exports.uploadProduct = async (req, res) => {
     try {
         const { name, price, quantity } = req.body;
 
-        // Check if an image was uploaded
-        if (!req.file) {
-            return res.status(400).json({ error: "No image uploaded" });
+        if (!name || !price || !quantity) {
+            return res.status(400).json({ message: "Name, price, and quantity are required." });
         }
 
-        const image = req.file.path;
-
-        // Create a new product
-        const product = new Product({
+        const newProduct = new Product({
             name,
-            price,
-            quantity,
-            image,
-            farmer: req.user.id
+            price: Number(price),
+            quantity: Number(quantity),
+            farmer: req.user._id
         });
 
-        await product.save();
-        res.status(201).json({ message: "Product uploaded successfully!", product });
+        if (req.file) {
+            newProduct.image = req.file.path;
+        }
 
+        await newProduct.save();
+        res.status(201).json(newProduct);
     } catch (error) {
-        res.status(500).json({ error: "Error uploading product.", details: error.message });
+        console.error("Upload Product Error:", error);
+        res.status(500).json({ message: "Server error while uploading product." });
     }
 };
 
-// Get All Products
+// Get all products
 exports.getAllProducts = async (req, res) => {
     try {
-        const products = await Product.find().populate("farmer", "name email");
-        res.json(products);
+        const products = await Product.find()
+            .populate('farmer', 'name email')
+            .sort('-createdAt');
+        res.status(200).json(products);
     } catch (error) {
-        res.status(500).json({ error: "Error fetching products." });
+        console.error("Get All Products Error:", error);
+        res.status(500).json({ message: "Server error while fetching products." });
     }
 };
 
-// Get Farmer's Products
+// Get products by farmer
 exports.getFarmerProducts = async (req, res) => {
     try {
-        const products = await Product.find({ farmer: req.user.id });
-        res.json(products);
+        const products = await Product.find({ farmer: req.user._id })
+            .sort('-createdAt');
+        res.status(200).json(products);
     } catch (error) {
-        res.status(500).json({ error: "Error fetching farmer's products." });
+        console.error("Get Farmer Products Error:", error);
+        res.status(500).json({ message: "Server error while fetching farmer's products." });
     }
 };
 
-// Get Product by ID
+// Get product by ID
 exports.getProductById = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id).populate("farmer", "name email");
+        const product = await Product.findById(req.params.productId)
+            .populate('farmer', 'name email');
+
         if (!product) {
-            return res.status(404).json({ error: "Product not found" });
+            return res.status(404).json({ message: "Product not found." });
         }
-        res.json(product);
+
+        res.status(200).json(product);
     } catch (error) {
-        res.status(500).json({ error: "Error fetching product." });
+        console.error("Get Product By ID Error:", error);
+        res.status(500).json({ message: "Server error while fetching product." });
     }
 };
 
-// Update Product
+// Update product
 exports.updateProduct = async (req, res) => {
     try {
-        const { name, price, quantity } = req.body;
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.productId);
 
         if (!product) {
-            return res.status(404).json({ error: "Product not found" });
+            return res.status(404).json({ message: "Product not found." });
         }
 
-        // Verify product belongs to the farmer
-        if (product.farmer.toString() !== req.user.id) {
-            return res.status(403).json({ error: "Not authorized to update this product" });
+        if (product.farmer.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Not authorized to update this product." });
         }
 
-        product.name = name || product.name;
-        product.price = price || product.price;
-        product.quantity = quantity || product.quantity;
-
-        if (req.file) {
-            product.image = req.file.path;
-        }
+        const { name, price, quantity } = req.body;
+        if (name) product.name = name;
+        if (price) product.price = Number(price);
+        if (quantity) product.quantity = Number(quantity);
+        if (req.file) product.image = req.file.path;
 
         const updatedProduct = await product.save();
-        res.json(updatedProduct);
+        res.status(200).json(updatedProduct);
     } catch (error) {
-        res.status(500).json({ error: "Error updating product." });
+        console.error("Update Product Error:", error);
+        res.status(500).json({ message: "Server error while updating product." });
     }
 };
 
-// Delete Product
+// Delete product
 exports.deleteProduct = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        const product = await Product.findById(req.params.productId);
 
         if (!product) {
-            return res.status(404).json({ error: "Product not found" });
+            return res.status(404).json({ message: "Product not found." });
         }
 
-        // Verify product belongs to the farmer
-        if (product.farmer.toString() !== req.user.id) {
-            return res.status(403).json({ error: "Not authorized to delete this product" });
+        if (product.farmer.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Not authorized to delete this product." });
         }
 
         await product.deleteOne();
-        res.json({ message: "Product deleted successfully" });
+        res.status(200).json({ message: "Product deleted successfully." });
     } catch (error) {
-        res.status(500).json({ error: "Error deleting product." });
+        console.error("Delete Product Error:", error);
+        res.status(500).json({ message: "Server error while deleting product." });
     }
 };

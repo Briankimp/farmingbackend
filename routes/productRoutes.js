@@ -1,40 +1,39 @@
 const express = require("express");
 const router = express.Router();
-const { uploadProduct, getAllProducts, getFarmerProducts, getProductById, updateProduct, deleteProduct } = require("../controllers/productController");
-const { protect, farmerOnly } = require("../middleware/authMiddleware");
-const multer = require("multer");
+const {
+    uploadProduct,
+    getAllProducts,
+    getFarmerProducts,
+    getProductById,
+    updateProduct,
+    deleteProduct
+} = require("../controllers/productController");
 
-//configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "uploads/"); // Make sure the `uploads/` folder exists
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "-" + file.originalname);
-    }
-});
-const upload = multer({ storage });
+// Debugging to check if the functions are properly imported
+console.log("uploadProduct:", typeof uploadProduct);
+console.log("getAllProducts:", typeof getAllProducts);
+console.log("getFarmerProducts:", typeof getFarmerProducts);
+console.log("getProductById:", typeof getProductById);
+console.log("updateProduct:", typeof updateProduct);
+console.log("deleteProduct:", typeof deleteProduct);
 
-// Ensure this route follows RESTful API best practices
- 
+if (
+    !uploadProduct ||
+    !getAllProducts ||
+    !getFarmerProducts ||
+    !getProductById ||
+    !updateProduct ||
+    !deleteProduct
+) {
+    throw new Error("❌ One or more product controllers are missing or undefined!");
+}
 
-
-// Upload product (Farmer only)
-router.post("/upload", upload.single("image"), protect, farmerOnly, uploadProduct);
-
-// Get all products
-router.get("/", getAllProducts);
-
-// Get farmer's products
-router.get("/farmer", protect, farmerOnly, getFarmerProducts);
-
-// Get product by ID
-router.get("/:id", getProductById);
-
-// Update product (Farmer only)
-router.put("/edit/:id", protect, farmerOnly, updateProduct);
-
-// Delete product (Farmer only)
-router.delete("/delete/:id", protect, farmerOnly, deleteProduct);
+// Routes
+router.post("/upload", uploadProduct);
+router.get("/all", getAllProducts);
+router.get("/farmer/:farmerId", getFarmerProducts);
+router.get("/:productId", getProductById);
+router.put("/update/:productId", updateProduct);
+router.delete("/delete/:productId", deleteProduct);
 
 module.exports = router;
