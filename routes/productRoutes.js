@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { uploadProduct, getProducts, getProductById, updateProduct, deleteProduct } = require("../controllers/productController");
+const { uploadProduct, getAllProducts, getFarmerProducts, getProductById, updateProduct, deleteProduct } = require("../controllers/productController");
 const { protect, farmerOnly } = require("../middleware/authMiddleware");
 const multer = require("multer");
 
@@ -23,7 +23,10 @@ const upload = multer({ storage });
 router.post("/upload", upload.single("image"), protect, farmerOnly, uploadProduct);
 
 // Get all products
-router.get("/", getProducts);
+router.get("/", getAllProducts);
+
+// Get farmer's products
+router.get("/farmer", protect, farmerOnly, getFarmerProducts);
 
 // Get product by ID
 router.get("/:id", getProductById);
