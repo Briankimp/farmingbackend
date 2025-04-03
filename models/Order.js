@@ -1,46 +1,106 @@
 const mongoose = require("mongoose");
 
 const OrderSchema = new mongoose.Schema({
-    vendor: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
-        required: [true, "Vendor is required"]
+    orderId: {
+        type: String,
+        required: true,
+        unique: true,
+        default: () => `ORD-${Math.floor(Math.random() * 10000)}`
     },
-    farmer: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
-        required: [true, "Farmer is required"]
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
     },
-    product: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Product", 
-        required: [true, "Product is required"]
+    productName: {
+        type: String,
+        required: true
     },
-    quantity: { 
-        type: Number, 
-        required: [true, "Quantity is required"],
-        min: [1, "Quantity must be at least 1"]
+    quantity: {
+        type: String,
+        required: true
     },
-    totalPrice: { 
-        type: Number, 
-        required: [true, "Total price is required"],
-        min: [0, "Total price cannot be negative"]
+    price: {
+        type: String,
+        required: true
     },
-    status: { 
-        type: String, 
-        enum: {
-            values: ["pending", "accepted", "rejected", "completed"],
-            message: "{VALUE} is not a valid status"
+    subtotal: {
+        type: String,
+        required: true
+    },
+    shipping: {
+        type: String,
+        required: true
+    },
+    total: {
+        type: String,
+        required: true
+    },
+    buyer: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
         },
-        default: "pending"
+        name: {
+            type: String,
+            required: true
+        },
+        avatar: {
+            type: String
+        }
     },
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
+    farmer: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        name: {
+            type: String,
+            required: true
+        },
+        location: {
+            type: String,
+            required: true
+        },
+        phone: {
+            type: String,
+            required: true
+        }
     },
-    updatedAt: { 
-        type: Date, 
-        default: Date.now 
+    status: {
+        type: String,
+        enum: ['pending', 'confirmed', 'processing', 'shipped', 'completed', 'cancelled'],
+        default: 'pending'
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    estimatedDelivery: {
+        type: Date,
+        required: true
+    },
+    completedDate: {
+        type: Date
+    },
+    cancelReason: {
+        type: String
+    },
+    paymentMethod: {
+        type: String,
+        required: true,
+        enum: ['Credit Card', 'Bank Transfer', 'PayPal', 'M-Pesa']
+    },
+    shippingAddress: {
+        type: String,
+        required: true
+    },
+    trackingNumber: {
+        type: String,
+        unique: true,
+        default: () => `TRK${Math.floor(Math.random() * 1000000)}`
     }
 }, {
     timestamps: true,
@@ -48,9 +108,11 @@ const OrderSchema = new mongoose.Schema({
     toObject: { virtuals: true }
 });
 
-// Add index for better query performance
-OrderSchema.index({ vendor: 1, createdAt: -1 });
-OrderSchema.index({ farmer: 1, createdAt: -1 });
+// Create indexes for better query performance
+OrderSchema.index({ orderId: 1 });
+OrderSchema.index({ 'buyer.id': 1 });
+OrderSchema.index({ 'farmer.id': 1 });
 OrderSchema.index({ status: 1 });
+OrderSchema.index({ date: -1 });
 
 module.exports = mongoose.model("Order", OrderSchema);
